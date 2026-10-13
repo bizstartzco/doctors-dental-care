@@ -544,3 +544,75 @@ button[disabled]{opacity:.7; cursor:progress}
 /* ?shot: screenshot mode for headless capture (final animation states, no transitions) */
 .shot *,.shot *::before,.shot *::after{transition:none!important}
 .shot .hero h1 .hl path{animation:none!important; stroke-dashoffset:0!important}
+
+/* ============================================================ chat assistant */
+.bot{position:fixed; right:24px; bottom:24px; z-index:110}
+.bot-launch{position:relative; width:64px; height:64px; border-radius:50%; border:0; cursor:pointer; color:#fff; background:var(--grad); box-shadow:0 16px 34px -12px rgba(45,91,255,.85); display:grid; place-items:center; transition:transform .4s var(--spring)}
+.bot-launch:hover{transform:scale(1.07) rotate(-6deg)}
+.bot-launch svg{width:28px; height:28px; grid-area:1/1; transition:transform .35s var(--spring), opacity .25s}
+.bot-launch .i-close{opacity:0; transform:rotate(-90deg) scale(.6)}
+.bot.open .bot-launch .i-chat{opacity:0; transform:rotate(90deg) scale(.6)}
+.bot.open .bot-launch .i-close{opacity:1; transform:none}
+.bot-ring{position:absolute; inset:0; border-radius:50%; border:2px solid rgba(45,91,255,.5)}
+@media (prefers-reduced-motion:no-preference){.bot:not(.open) .bot-ring{animation:ring 2.8s var(--ease) infinite}}
+@keyframes ring{0%{transform:scale(1); opacity:.9}100%{transform:scale(1.6); opacity:0}}
+.bot-hint{position:absolute; right:76px; bottom:12px; white-space:nowrap; background:#fff; color:var(--body); font-size:.9rem; padding:10px 14px; border-radius:14px 14px 4px 14px; box-shadow:var(--shadow-lg); opacity:0; transform:translateX(10px) scale(.96); pointer-events:none; transition:opacity .4s, transform .5s var(--spring); cursor:pointer}
+.bot-hint b{color:var(--blue)}
+.bot-hint.show{opacity:1; transform:none; pointer-events:auto}
+.bot-panel{position:absolute; right:0; bottom:80px; width:390px; height:min(620px, calc(100vh - 140px)); background:var(--surface); border-radius:26px; box-shadow:0 30px 80px -24px rgba(10,22,48,.5), 0 0 0 1px rgba(10,22,48,.06); display:flex; flex-direction:column; overflow:hidden; transform-origin:100% 100%; opacity:0; transform:translateY(16px) scale(.94); pointer-events:none; visibility:hidden; transition:opacity .3s, transform .45s var(--spring), visibility 0s .45s}
+.bot.open .bot-panel{opacity:1; transform:none; pointer-events:auto; visibility:visible; transition:opacity .3s, transform .45s var(--spring)}
+.bot-head{display:flex; align-items:center; gap:12px; padding:16px 14px 16px 18px; background:linear-gradient(135deg,var(--night) 0%,#1A2F7A 100%); color:#fff}
+.bot-head b{display:block; font-family:var(--f-display); font-size:1.08rem; letter-spacing:-.01em}
+.bot-head small{display:flex; align-items:center; gap:6px; font-size:.78rem; color:#B9C6E4}
+.bot-head > div{flex:1; min-width:0}
+.bot-dot{width:7px; height:7px; border-radius:50%; background:#F59E0B; flex:none}
+.bot-dot.on{background:#22C55E}
+.bot-av{width:42px; height:42px; border-radius:14px; background:var(--grad); display:grid; place-items:center; flex:none}
+.bot-av svg{width:24px; height:24px}
+.bot-wa{display:inline-flex; align-items:center; gap:6px; background:var(--wa); color:#fff; text-decoration:none; font-weight:700; font-size:.8rem; padding:8px 11px; border-radius:999px}
+.bot-wa:hover{color:#fff; background:#178A45}
+.bot-wa svg{width:16px; height:16px}
+.bot-x{width:36px; height:36px; border-radius:50%; border:0; background:rgba(255,255,255,.1); color:#fff; cursor:pointer; display:grid; place-items:center}
+.bot-x svg{width:18px; height:18px}
+.bot-log{flex:1; overflow-y:auto; padding:18px 16px 8px; display:flex; flex-direction:column; gap:10px; background:var(--bg); overscroll-behavior:contain}
+.msg{max-width:86%; padding:11px 14px; border-radius:18px; font-size:.93rem; line-height:1.5}
+@media (prefers-reduced-motion:no-preference){.msg{animation:msgIn .4s var(--spring)}}
+@keyframes msgIn{from{opacity:0; transform:translateY(8px) scale(.97)}}
+.msg p{margin:0 0 .5em} .msg p:last-child{margin:0}
+.msg ul{margin:.3em 0 .5em; padding-left:1.1em}
+.msg.ai{align-self:flex-start; background:#fff; color:var(--body); border:1px solid var(--line); border-bottom-left-radius:6px}
+.msg.ai b{color:var(--ink)}
+.msg.me{align-self:flex-end; background:var(--blue); color:#fff; border-bottom-right-radius:6px}
+.msg .warn{background:var(--alert-soft); border-radius:10px; padding:8px 10px; color:var(--ink)}
+.msg.typing{display:flex; gap:4px; padding:14px 16px}
+.msg.typing i{width:7px; height:7px; border-radius:50%; background:#9AA6C2; animation:dots 1s infinite}
+.msg.typing i:nth-child(2){animation-delay:.15s} .msg.typing i:nth-child(3){animation-delay:.3s}
+@keyframes dots{0%,60%,100%{transform:translateY(0); opacity:.5}30%{transform:translateY(-4px); opacity:1}}
+.msg-acts{display:flex; flex-direction:column; gap:6px; margin-top:10px}
+.act{display:flex; align-items:center; justify-content:center; text-align:center; padding:9px 12px; border-radius:12px; background:var(--sky); color:var(--blue); font-weight:700; font-size:.86rem; text-decoration:none; transition:background .2s, color .2s}
+.act:hover{background:var(--blue); color:#fff}
+.act.wa{background:var(--wa); color:#fff} .act.wa:hover{background:#178A45}
+.act.call{background:var(--ink); color:#fff}
+.sum{display:grid; grid-template-columns:auto 1fr; gap:4px 12px; background:var(--bg); border-radius:12px; padding:10px 12px; margin:6px 0 8px; font-size:.88rem}
+.sum span{color:var(--muted)}
+.bot-chips{display:flex; gap:6px; padding:8px 14px; overflow-x:auto; background:var(--bg); scrollbar-width:none; flex-wrap:nowrap}
+.bot-chips:empty{display:none}
+.chip-q{flex:none; border:1.5px solid #C9D6F5; background:#fff; color:var(--blue); border-radius:999px; padding:7px 13px; font:600 .84rem var(--f-body); cursor:pointer; transition:all .2s}
+.chip-q:hover{background:var(--blue); color:#fff; border-color:var(--blue)}
+.bot-form{display:flex; gap:8px; padding:10px 12px; border-top:1px solid var(--line); background:#fff}
+.bot-form input{flex:1; min-width:0; border:1.5px solid var(--line); border-radius:999px; padding:12px 16px; font:inherit; font-size:.95rem; background:var(--bg); color:var(--ink)}
+.bot-form input:focus{outline:none; border-color:var(--blue); background:#fff}
+.bot-form button{width:46px; height:46px; border-radius:50%; border:0; background:var(--blue); color:#fff; cursor:pointer; display:grid; place-items:center; flex:none}
+.bot-form button svg{width:20px; height:20px}
+.bot-foot{margin:0; padding:0 14px 10px; background:#fff; font-size:.7rem; color:var(--muted); text-align:center; line-height:1.4}
+@media (max-width:760px){
+  .bot{right:14px; bottom:calc(84px + env(safe-area-inset-bottom))}
+  .bot-launch{width:56px; height:56px}
+  .bot-hint{right:66px; bottom:8px}
+  .bot-panel{position:fixed; left:8px; right:8px; top:8px; bottom:8px; width:auto; height:auto; border-radius:22px}
+  .bot.open .bot-launch{opacity:0; pointer-events:none}
+}
+.shot .bot-hint{display:none}
+@media (max-width:420px){.bot-wa{padding:8px} .bot-wa{font-size:0; gap:0} .bot-wa svg{width:18px; height:18px} .bot-head{gap:10px; padding:14px 12px} .bot-av{width:38px; height:38px}}
+.bot-head b,.bot-head small span{white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.bot-head b{font-size:1rem}
