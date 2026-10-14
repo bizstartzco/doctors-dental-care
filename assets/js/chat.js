@@ -57,7 +57,10 @@
     ['payment', ['insurance', 'esewa', 'khalti', 'fonepay', 'card', 'cash', 'pay', 'payment', 'installment', 'emi']],
     ['hours', ['open', 'hour', 'timing', 'what time', 'opening time', 'closing time', 'close', 'closing', 'saturday', 'sunday', 'today', 'tomorrow', 'tonight', 'morning', 'evening', 'holiday', 'dashain', 'tihar', 'khulcha', 'baje', 'kahile']],
     ['location', ['where', 'address', 'location', 'locate', 'map', 'direction', 'how to get', 'how do i get', 'find you', 'kapan', 'tenzing', 'parking', 'kaha', 'near']],
-    ['dentist', ['who is the dentist', 'which doctor', 'doctor name', 'dr ', 'navin', 'sah', 'qualification', 'experience', 'specialist', 'surgeon']],
+    ['tests', ['x-ray', 'xray', 'x ray', 'opg', 'iopa', 'blood test', 'blood sugar', 'cbc', 'hba1c', 'lab', 'investigation', 'scan']],
+    ['careers', ['job', 'vacanc', 'career', 'hiring', 'recruit', 'work with you', 'work for you', 'work at', 'cv', 'resume', 'internship', 'apply for']],
+    ['gallery', ['photo', 'picture', 'gallery', 'video', 'see the clinic', 'inside the clinic']],
+    ['dentist', ['who is the dentist', 'who are the', 'which doctor', 'doctor name', 'doctors', 'dentists', 'dr ', 'navin', 'sah', 'qualification', 'experience', 'specialist', 'surgeon', 'orthodontist', 'female doctor', 'lady doctor']],
     ['kids', ['child', 'children', 'kid', 'baby', 'son', 'daughter', 'toddler', 'school', 'baccha']],
     ['thanks', ['thank', 'thanks', 'dhanyabad', 'dhanyavad', 'great', 'ok thanks', 'bye', 'goodbye']],
     ['greeting', ['hi', 'hello', 'hey', 'namaste', 'namaskar', 'good morning', 'good evening', 'good afternoon']],
@@ -151,7 +154,7 @@
       chips.appendChild(b);
     });
   };
-  var MAIN = ['Book a visit', 'Opening hours', 'Where are you?', 'Treatments', 'Prices', 'Talk to a person'];
+  var MAIN = ['Book a visit', 'Our doctors', 'Opening hours', 'Where are you?', 'Treatments', 'Prices', 'Talk to a person'];
   var waAct = function (text, label) { return { label: label || 'Continue on WhatsApp', href: waLink(text), ext: true, cls: 'wa' }; };
   var askWa = function () { return waAct('Hello Doctors Dental Care, I have a question: ' + state.last); };
   var callAct = { label: 'Call the clinic', href: TEL, cls: 'call' };
@@ -195,16 +198,38 @@
     if (intent === 'emergency') return bot('<p class="warn"><b>This sounds urgent.</b> Facial swelling that is spreading, fever, heavy bleeding that won’t stop, or difficulty swallowing or breathing needs urgent attention.</p><p>Call us now. If you can’t reach us or it is getting worse, go to the nearest hospital emergency department.</p>', [callAct, waAct('URGENT: ' + q, 'Message us on WhatsApp')]);
     if (intent === 'book') return startBooking(svc);
     if (intent === 'price' && has(t, ['how much time', 'how long'])) intent = svc ? null : 'hours';
+    if (intent === 'price' && KB.tests.length && has(t, ['x-ray', 'xray', 'x ray', 'opg', 'iopa', 'blood', 'cbc', 'sugar', 'hba1c', 'test'])) intent = 'tests'; // tests have published prices
     if (intent === 'price') return bot('<p>We don’t publish prices online. The cost depends on what the examination finds and the option you choose ' + (svc ? 'for ' + esc(svc.name.toLowerCase()) + ' ' : '') + '(for example, zirconia vs metal-ceramic crowns).</p><p>Our team can give you an idea on WhatsApp, and we explain costs before any treatment starts.</p>', [waAct('Hello Doctors Dental Care, could you tell me the price ' + (svc ? 'for ' + svc.name.toLowerCase() : 'of a treatment') + '? ' + q, 'Ask the price on WhatsApp')], ['Book a check-up', 'Treatments']);
-    if (intent === 'payment') return bot('<p>Payment options aren’t listed on the website yet, so please check with the team on WhatsApp before your visit.</p>', [askWa()]);
+    if (intent === 'payment') {
+      var NAMES = { esewa: 'eSewa', khalti: 'Khalti', qr: 'Fonepay / bank QR', clinic: 'cash or card at the clinic' };
+      var pm = (KB.payments.methods || []).map(function (m) { return NAMES[m]; });
+      return bot('<p>' + (KB.payments.deposit ? 'When you book online, a deposit of <b>Rs. ' + esc(KB.payments.deposit) + '</b> holds your time and is taken off your bill. ' : '') +
+        (pm.length ? 'You can pay with ' + esc(pm.join(', ').replace(/, ([^,]*)$/, ' or $1')) + '.' : 'Please check payment options with the team on WhatsApp.') + '</p><p>For anything else, like insurance or instalments, please ask the team.</p>',
+        [{ label: 'Book online', href: link('/appointment/') }, askWa()], ['Prices', 'Book a visit']);
+    }
+    if (intent === 'tests' || (intent === 'price' && has(t, ['x-ray', 'xray', 'x ray', 'opg', 'blood', 'test']))) {
+      if (!KB.tests.length) return bot('<p>Your doctor will tell you if you need an X-ray or a test, and where to have it. Please ask the team on WhatsApp for details.</p>', [askWa()]);
+      var hit = KB.tests.filter(function (x) { return faqScore(q, x.name) >= .5 || has(t, [x.name.toLowerCase().split(' (')[0]]); });
+      var list = (hit.length ? hit : KB.tests).slice(0, 6);
+      return bot('<p>' + (hit.length ? '' : 'Investigations available at the clinic:') + '</p><ul>' + list.map(function (x) { return '<li><b>' + esc(x.name) + '</b>' + (x.price ? ' · Rs. ' + esc(x.price) : '') + (hit.length && x.preparation ? '<br><small>' + esc(x.preparation) + '</small>' : '') + '</li>'; }).join('') + '</ul>',
+        [{ label: 'See all investigations', href: link('/investigations/') }, { label: 'Book a test', href: link('/appointment/' + (hit.length === 1 ? '?test=' + hit[0].id : '')) }], ['Book a visit', 'Opening hours']);
+    }
+    if (intent === 'careers') return bot('<p>' + (KB.jobs.length ? 'We are currently hiring for: ' + KB.jobs.map(function (j) { return '<b>' + esc(j.title) + '</b>'; }).join(', ') + '.' : 'We have no advertised openings right now, but you can send your CV and we’ll keep it on file.') + '</p>',
+      [{ label: KB.jobs.length ? 'See openings and apply' : 'Send your CV', href: link('/careers/') }], ['Where are you?']);
+    if (intent === 'gallery') return bot('<p>' + (KB.hasGallery || KB.hasVideos ? 'Take a look inside the clinic.' : 'Photos of the clinic are coming soon. You are welcome to visit during opening hours.') + '</p>',
+      [].concat(KB.hasGallery ? [{ label: 'Photo gallery', href: link('/gallery/') }] : [], KB.hasVideos ? [{ label: 'Videos', href: link('/gallery/videos/') }] : []), ['Where are you?', 'Book a visit']);
     if (intent === 'human') return bot('<p>Of course. Our team replies on WhatsApp, and your question will be pre-filled. You can also call during opening hours.</p>', [askWa(), callAct]);
-    if (svc && !(intent === 'hours' || intent === 'location')) return symptom && !QUESTION.test(t) ? symptomAnswer(q) : serviceAnswer(svc, q);
+    if (svc && !(intent === 'hours' || intent === 'location' || intent === 'dentist' || intent === 'tests')) return symptom && !QUESTION.test(t) ? symptomAnswer(q) : serviceAnswer(svc, q);
     if (intent === 'hours') {
       var hol = has(t, ['holiday', 'dashain', 'tihar', 'festival']);
       return bot('<p>We are open <b>' + esc(KB.clinic.hoursText) + '</b>, Saturdays included.</p><p>' + openNow() + '</p>' + (hol ? '<p>Hours can change on public holidays, so please confirm on WhatsApp before you come.</p>' : ''), hol ? [askWa()] : [], ['Book a visit', 'Where are you?']);
     }
     if (intent === 'location') return bot('<p>We are at <b>' + esc(KB.clinic.address) + '</b>.</p><p>If you have trouble finding us, message us and we’ll guide you.</p>', [{ label: 'Get directions', href: KB.clinic.directions, ext: true }, waAct('Hello Doctors Dental Care, could you guide me to the clinic?', 'Ask for directions on WhatsApp')], ['Opening hours', 'Book a visit']);
-    if (intent === 'dentist') return bot('<p>Your care is led by <b>' + esc(KB.dentist.name) + '</b>, ' + esc(KB.dentist.role.toLowerCase()) + '.</p>', [{ label: 'About ' + KB.dentist.name, href: link(KB.dentist.url) }], ['Book a visit', 'Treatments']);
+    if (intent === 'dentist') {
+      var docs = KB.doctors.filter(function (x) { return !svc || !x.specialties.length || x.specialties.indexOf(svc.slug) > -1; });
+      return bot('<p>We have a panel of doctors under one roof' + (svc ? ', and these doctors provide ' + esc(svc.name.toLowerCase()) : '') + ':</p><ul>' + docs.slice(0, 6).map(function (x) { return '<li><a href="' + esc(link(x.url)) + '">' + esc(x.name) + '</a>' + (x.title ? ' · ' + esc(x.title) : '') + '</li>'; }).join('') + '</ul><p>You can choose your doctor when you book online, or pick “any available doctor”.</p>',
+        [{ label: 'Meet our doctors', href: link('/doctors/') }, { label: 'Book online', href: link('/appointment/') }], ['Book a visit', 'Treatments']);
+    }
     if (intent === 'kids') return bot('<p>Yes, we offer check-ups and advice for children and adults. For a child’s first visit, tell us their age when you book.</p>', [{ label: 'Book a check-up', href: link('/appointment/') }, askWa()]);
     if (symptom) return symptomAnswer(q);
     var faq = bestFaq(q, KB.faqs.concat([].concat.apply([], KB.services.map(function (s) { return s.faqs; }))));
@@ -233,7 +258,7 @@
       var msg = 'Hello Doctors Dental Care, I would like to book an appointment.\nName: ' + state.data.name + '\nFor: ' + (state.data.service || 'General check-up') + '\nPreferred time: ' + state.data.when;
       var slug = (KB.services.filter(function (s) { return s.name === state.data.service; })[0] || {}).slug;
       return bot('<p>Here’s your request:</p><div class="sum"><span>Name</span><b>' + esc(state.data.name) + '</b><span>For</span><b>' + esc(state.data.service || 'General check-up') + '</b><span>When</span><b>' + esc(state.data.when) + '</b></div><p>Tap below to send it to our team on WhatsApp. They’ll confirm a time with you.</p>',
-        [waAct(msg, 'Send request on WhatsApp'), { label: 'Use the booking form instead', href: link('/appointment/' + (slug ? '?service=' + slug : '')) }], ['Opening hours', 'Where are you?']);
+        [{ label: 'Pick an exact time online', href: link('/appointment/' + (slug ? '?service=' + slug : '')) }, waAct(msg, 'Send request on WhatsApp')], ['Opening hours', 'Where are you?']);
     }
   };
 

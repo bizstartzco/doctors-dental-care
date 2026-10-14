@@ -1,4 +1,7 @@
 User-agent: *
 Allow: /
+Disallow: /admin
+Disallow: /api/
+Disallow: /booking/
 
 Sitemap: https://doctorsdentalcare.com/sitemap.xml
