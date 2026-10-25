@@ -127,6 +127,7 @@
   }
 
   /* ================================================================== scheduler */
+  var LAB = 'Lab test (blood or other)'; // must match LAB_TEST in app/server.js
   var O, state = { kind: 'treatment', service: null, test: null, doctor: 'any', date: null, start: null, method: null };
   api('booking/options').then(function (o) { O = o; init(); }).catch(function () {
     /* No server: on a static preview, fall back to the labelled demo dataset; otherwise keep the WhatsApp/phone fallback. */
@@ -137,6 +138,7 @@
   });
 
   function init() {
+    if (q.get('lab')) { state.kind = 'investigation'; state.service = LAB; }
     if (q.get('test')) { var t = O.tests.filter(function (x) { return String(x.id) === q.get('test'); })[0]; if (t) { state.kind = 'investigation'; state.test = t; state.service = t.name; } }
     if (q.get('service')) { var s = O.services.filter(function (x) { return x.slug === q.get('service'); })[0]; if (s) state.service = s.name; }
     if (q.get('doctor')) { var dr = O.doctors.filter(function (x) { return x.slug === q.get('doctor'); })[0]; if (dr) state.doctor = dr.slug; }
@@ -166,13 +168,15 @@
     var h = '<p class="grp">Treatments</p><div class="picks">' + ['General check-up'].concat(O.services.map(function (s) { return s.name; })).map(function (n) {
       return chip(n, state.kind === 'treatment' && state.service === n, 'data-what="t" data-name="' + esc(n) + '"');
     }).join('') + '</div>';
-    if (O.tests.length) h += '<p class="grp">Investigations</p><div class="picks">' + O.tests.map(function (t) {
+    h += '<p class="grp">Lab &amp; tests</p><div class="picks">' + chip(LAB, state.kind === 'investigation' && !state.test, 'data-what="lab"') + O.tests.map(function (t) {
       return chip(t.name, state.kind === 'investigation' && state.test && state.test.id === t.id, 'data-what="i" data-id="' + t.id + '"');
-    }).join('') + '</div>' + (state.test && state.test.preparation ? '<p class="note">' + esc('Preparation: ' + state.test.preparation) + '</p>' : '');
+    }).join('') + '</div>' + (state.test && state.test.preparation ? '<p class="note">' + esc('Preparation: ' + state.test.preparation) + '</p>' : '') +
+      (state.kind === 'investigation' && !state.test ? '<p class="note">Write the test your doctor asked for in “Anything we should know?” below. Some blood tests need fasting: we will tell you.</p>' : '');
     el.innerHTML = h;
     el.querySelectorAll('[data-what]').forEach(function (b) {
       b.addEventListener('click', function () {
         if (b.getAttribute('data-what') === 't') { state.kind = 'treatment'; state.test = null; state.service = b.getAttribute('data-name'); }
+        else if (b.getAttribute('data-what') === 'lab') { state.kind = 'investigation'; state.test = null; state.service = LAB; state.doctor = 'any'; }
         else { state.kind = 'investigation'; state.test = O.tests.filter(function (t) { return String(t.id) === b.getAttribute('data-id'); })[0]; state.service = state.test.name; state.doctor = 'any'; }
         renderWhat(); renderDoctors(); loadDates(); summary();
       });

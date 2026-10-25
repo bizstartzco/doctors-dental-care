@@ -57,8 +57,11 @@
     ['payment', ['insurance', 'esewa', 'khalti', 'fonepay', 'card', 'cash', 'pay', 'payment', 'installment', 'emi']],
     ['hours', ['open', 'hour', 'timing', 'what time', 'opening time', 'closing time', 'close', 'closing', 'saturday', 'sunday', 'today', 'tomorrow', 'tonight', 'morning', 'evening', 'holiday', 'dashain', 'tihar', 'khulcha', 'baje', 'kahile']],
     ['location', ['where', 'address', 'location', 'locate', 'map', 'direction', 'how to get', 'how do i get', 'find you', 'kapan', 'tenzing', 'parking', 'kaha', 'near']],
-    ['tests', ['x-ray', 'xray', 'x ray', 'opg', 'iopa', 'blood test', 'blood sugar', 'cbc', 'hba1c', 'lab', 'investigation', 'scan']],
+    ['feedback', ['review', 'feedback', 'testimonial', 'experience of patients', 'what patients say']],
+    ['tests', ['x-ray', 'xray', 'x ray', 'opg', 'iopa', 'blood', 'sugar', 'cbc', 'hba1c', 'lab', 'investigation', 'scan', 'test', 'thyroid', 'tsh', 'lipid', 'cholesterol', 'urine', 'stool', 'liver', 'kidney', 'hormone', 'culture', 'sukra', 'diagnostic']],
     ['careers', ['job', 'vacanc', 'career', 'hiring', 'recruit', 'work with you', 'work for you', 'work at', 'cv', 'resume', 'internship', 'apply for']],
+    ['email', ['email', 'e-mail', 'mail you', 'gmail']],
+    ['feedback', ['review', 'feedback', 'testimonial', 'experience of patients', 'what patients say']],
     ['gallery', ['photo', 'picture', 'gallery', 'video', 'see the clinic', 'inside the clinic']],
     ['dentist', ['who is the dentist', 'who are the', 'which doctor', 'doctor name', 'doctors', 'dentists', 'dr ', 'navin', 'sah', 'qualification', 'experience', 'specialist', 'surgeon', 'orthodontist', 'female doctor', 'lady doctor']],
     ['kids', ['child', 'children', 'kid', 'baby', 'son', 'daughter', 'toddler', 'school', 'baccha']],
@@ -101,7 +104,7 @@
     panel.className = 'bot-panel'; panel.id = 'bot-panel';
     panel.setAttribute('role', 'dialog'); panel.setAttribute('aria-modal', 'false'); panel.setAttribute('aria-label', 'Chat with Doctors Dental Care');
     panel.innerHTML =
-      '<div class="bot-head"><span class="bot-av" aria-hidden="true"><svg viewBox="0 0 24 24"><path fill="#fff" d="M12 4.2C10.4 3 8.6 2.6 7 2.8 4.4 3.1 2.8 5.2 3 8.2c.1 2.2 1.1 3.8 1.6 6 .5 2.4.8 6.8 2.8 6.8 1.6 0 1.8-2.4 2.3-4.4.3-1.2 1.1-2 2.3-2s2 .8 2.3 2c.5 2 .7 4.4 2.3 4.4 2 0 2.3-4.4 2.8-6.8.5-2.2 1.5-3.8 1.6-6 .2-3-1.4-5.1-4-5.4-1.6-.2-3.4.2-5 1.4z"/></svg></span>' +
+      '<div class="bot-head"><span class="bot-av" aria-hidden="true"><img src="' + BASE + 'assets/img/logo-badge-96.webp" alt="" width="42" height="42"></span>' +
       '<div><b>Doctors Dental Care</b><small><i class="bot-dot"></i><span class="bot-st">Assistant · replies instantly</span></small></div>' +
       '<a class="bot-wa" href="' + esc(waLink('Hello Doctors Dental Care, I have a question.')) + '" target="_blank" rel="noopener" aria-label="Open WhatsApp chat with the clinic">' +
       '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm5.3 14.1c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .1-3.3-.8-2.8-1.1-4.6-4-4.7-4.2-.1-.2-1.1-1.5-1.1-2.8s.7-2 1-2.3c.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.8 2c.1.2.1.4 0 .5l-.3.5-.4.4c-.1.1-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.3 2.4 1.5.3.1.5.1.6-.1l.9-1c.2-.3.4-.2.6-.1l1.9.9c.3.1.5.2.5.3.1.2.1.7-.1 1.3z"/></svg>WhatsApp</a>' +
@@ -208,14 +211,20 @@
         [{ label: 'Book online', href: link('/appointment/') }, askWa()], ['Prices', 'Book a visit']);
     }
     if (intent === 'tests' || (intent === 'price' && has(t, ['x-ray', 'xray', 'x ray', 'opg', 'blood', 'test']))) {
-      if (!KB.tests.length) return bot('<p>Your doctor will tell you if you need an X-ray or a test, and where to have it. Please ask the team on WhatsApp for details.</p>', [askWa()]);
       var hit = KB.tests.filter(function (x) { return faqScore(q, x.name) >= .5 || has(t, [x.name.toLowerCase().split(' (')[0]]); });
+      if (!hit.length && KB.lab) return bot('<p>Yes. Our own laboratory, <b>' + esc(KB.lab.name) + '</b>, does all kinds of blood tests and investigations on site, including ' + esc(KB.lab.groups.slice(0, 5).map(function (g) { return g[0].toLowerCase(); }).join(', ')) + '. Dental X-rays are done at the clinic as your doctor advises.</p><p>Some blood tests need fasting: we will tell you when you book.' + (has(t, ['price', 'cost', 'how much', 'kati', 'rate']) ? ' For test prices, please ask the team on WhatsApp.' : '') + '</p>',
+        [{ label: 'See lab tests', href: link('/investigations/') }, { label: 'Book a test', href: link('/appointment/?lab=1') }, askWa()], ['Opening hours', 'Where are you?']);
       var list = (hit.length ? hit : KB.tests).slice(0, 6);
       return bot('<p>' + (hit.length ? '' : 'Investigations available at the clinic:') + '</p><ul>' + list.map(function (x) { return '<li><b>' + esc(x.name) + '</b>' + (x.price ? ' · Rs. ' + esc(x.price) : '') + (hit.length && x.preparation ? '<br><small>' + esc(x.preparation) + '</small>' : '') + '</li>'; }).join('') + '</ul>',
         [{ label: 'See all investigations', href: link('/investigations/') }, { label: 'Book a test', href: link('/appointment/' + (hit.length === 1 ? '?test=' + hit[0].id : '')) }], ['Book a visit', 'Opening hours']);
     }
     if (intent === 'careers') return bot('<p>' + (KB.jobs.length ? 'We are currently hiring for: ' + KB.jobs.map(function (j) { return '<b>' + esc(j.title) + '</b>'; }).join(', ') + '.' : 'We have no advertised openings right now, but you can send your CV and we’ll keep it on file.') + '</p>',
       [{ label: KB.jobs.length ? 'See openings and apply' : 'Send your CV', href: link('/careers/') }], ['Where are you?']);
+    if (intent === 'email') return bot('<p>' + (KB.clinic.email ? 'You can email us at <a href="mailto:' + esc(KB.clinic.email) + '">' + esc(KB.clinic.email) + '</a>. For anything urgent, please call.' : 'Please message us on WhatsApp or use the contact form.') + '</p>',
+      [{ label: 'Contact page', href: link('/contact/') }, askWa()], ['Opening hours']);
+    if (intent === 'feedback') return bot('<p>You can watch and read what patients say on our feedback page, and share your own experience there too. We publish feedback only with the patient’s permission.</p>',
+      [{ label: 'Patient feedback', href: link('/feedback/') }], ['Book a visit']);
+    if (intent === 'gallery' && has(t, ['video'])) return bot('<p>Our doctors post short educational videos about treatments and dental care.</p>', [{ label: 'Educational videos', href: link('/videos/') }, { label: 'Patient feedback videos', href: link('/feedback/') }], ['Treatments']);
     if (intent === 'gallery') return bot('<p>' + (KB.hasGallery || KB.hasVideos ? 'Take a look inside the clinic.' : 'Photos of the clinic are coming soon. You are welcome to visit during opening hours.') + '</p>',
       [].concat(KB.hasGallery ? [{ label: 'Photo gallery', href: link('/gallery/') }] : [], KB.hasVideos ? [{ label: 'Videos', href: link('/gallery/videos/') }] : []), ['Where are you?', 'Book a visit']);
     if (intent === 'human') return bot('<p>Of course. Our team replies on WhatsApp, and your question will be pre-filled. You can also call during opening hours.</p>', [askWa(), callAct]);
