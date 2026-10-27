@@ -70,7 +70,8 @@
   var onScroll = function () {
     var y = window.scrollY, h = root.scrollHeight - innerHeight;
     if (prog) prog.style.setProperty('--p', h > 0 ? (y / h).toFixed(4) : 0);
-    if (header && !b.classList.contains('menu-open')) header.classList.toggle('hide', y > 300 && y > lastY + 4);
+    /* Booking and form pages keep the header still: a sliding header while filling a form is distracting (client, 2026-10-27). */
+    if (header && !b.classList.contains('menu-open') && !b.classList.contains('steady')) header.classList.toggle('hide', y > 300 && y > lastY + 4);
     if (y < lastY - 4 && header) header.classList.remove('hide');
     if (bar) bar.classList.toggle('show', y > 260);
     lastY = y;

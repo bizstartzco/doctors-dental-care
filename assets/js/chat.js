@@ -51,6 +51,7 @@
   };
   var INTENTS = [
     ['emergency', ['swelling in my face', 'face is swollen', 'face swelling', 'swollen face', 'cant breathe', 'can not breathe', 'difficulty breathing', 'trouble breathing', 'hard to breathe', 'cant swallow', 'difficulty swallowing', 'fever', 'wont stop bleeding', 'not stop bleeding', 'bleeding a lot', 'knocked out', 'accident', 'broken jaw', 'jaw is broken', 'emergency', 'urgent', 'severe pain']],
+    ['viber', ['viber', 'iphone', 'no whatsapp', 'dont have whatsapp', 'without whatsapp', 'not on whatsapp']],
     ['human', ['human', 'real person', 'a person', 'talk to someone', 'speak to someone', 'talk to doctor', 'speak to doctor', 'call me', 'call back', 'agent', 'staff', 'receptionist', 'whatsapp']],
     ['book', ['book', 'appointment', 'schedule', 'reserve', 'slot', 'want to visit', 'can i visit', 'can i come', 'come in', 'see the dentist', 'see a dentist', 'consultation', 'checkup', 'check up', 'check-up', 'milcha', 'aauna']],
     ['price', ['price', 'cost', 'fee', 'charge', 'rate', 'how much', 'expensive', 'cheap', 'afford', 'rs', 'npr', 'rupee', 'kati parcha', 'kati ho', 'paisa', 'budget']],
@@ -211,12 +212,16 @@
         [{ label: 'Book online', href: link('/appointment/') }, askWa()], ['Prices', 'Book a visit']);
     }
     if (intent === 'tests' || (intent === 'price' && has(t, ['x-ray', 'xray', 'x ray', 'opg', 'blood', 'test']))) {
+      var isXray = has(t, ['x-ray', 'xray', 'x ray', 'opg', 'iopa', 'radiograph']);
+      var priceQ = has(t, ['price', 'cost', 'how much', 'kati', 'rate']);
+      if (isXray) return bot('<p>Yes, we take dental X-rays at the clinic, and you don’t need a dental appointment first. Tell us which X-ray your dentist asked for, or our dentist will advise.</p><p>Please tell us beforehand if you are or might be pregnant.' + (priceQ ? ' For the price, please ask the team on WhatsApp.' : '') + '</p>',
+        [{ label: 'Book a dental X-ray', href: link('/dental-x-ray/#book') }, askWa()], ['Opening hours', 'Where are you?']);
       var hit = KB.tests.filter(function (x) { return faqScore(q, x.name) >= .5 || has(t, [x.name.toLowerCase().split(' (')[0]]); });
-      if (!hit.length && KB.lab) return bot('<p>Yes. Our own laboratory, <b>' + esc(KB.lab.name) + '</b>, does all kinds of blood tests and investigations on site, including ' + esc(KB.lab.groups.slice(0, 5).map(function (g) { return g[0].toLowerCase(); }).join(', ')) + '. Dental X-rays are done at the clinic as your doctor advises.</p><p>Some blood tests need fasting: we will tell you when you book.' + (has(t, ['price', 'cost', 'how much', 'kati', 'rate']) ? ' For test prices, please ask the team on WhatsApp.' : '') + '</p>',
-        [{ label: 'See lab tests', href: link('/investigations/') }, { label: 'Book a test', href: link('/appointment/?lab=1') }, askWa()], ['Opening hours', 'Where are you?']);
+      if (!hit.length && KB.lab) return bot('<p>Yes. Our own laboratory, <b>' + esc(KB.lab.name) + '</b>, does all kinds of blood tests and lab tests, including ' + esc(KB.lab.groups.slice(0, 5).map(function (g) { return g[0].toLowerCase(); }).join(', ')) + '. You can book a test on its own, without a dental appointment.</p><p>Some blood tests need fasting: we will tell you when you book.' + (priceQ ? ' For test prices, please ask the team on WhatsApp.' : '') + '</p>',
+        [{ label: 'Book a lab test', href: link('/lab-tests/#book') }, { label: 'See lab tests', href: link('/lab-tests/') }, askWa()], ['Opening hours', 'Where are you?']);
       var list = (hit.length ? hit : KB.tests).slice(0, 6);
-      return bot('<p>' + (hit.length ? '' : 'Investigations available at the clinic:') + '</p><ul>' + list.map(function (x) { return '<li><b>' + esc(x.name) + '</b>' + (x.price ? ' · Rs. ' + esc(x.price) : '') + (hit.length && x.preparation ? '<br><small>' + esc(x.preparation) + '</small>' : '') + '</li>'; }).join('') + '</ul>',
-        [{ label: 'See all investigations', href: link('/investigations/') }, { label: 'Book a test', href: link('/appointment/' + (hit.length === 1 ? '?test=' + hit[0].id : '')) }], ['Book a visit', 'Opening hours']);
+      return bot('<p>' + (hit.length ? '' : 'Tests available at the clinic:') + '</p><ul>' + list.map(function (x) { return '<li><b>' + esc(x.name) + '</b>' + (x.price ? ' · Rs. ' + esc(x.price) : '') + (hit.length && x.preparation ? '<br><small>' + esc(x.preparation) + '</small>' : '') + '</li>'; }).join('') + '</ul>',
+        [{ label: 'Book a lab test', href: link('/lab-tests/#book') }, { label: 'See lab tests', href: link('/lab-tests/') }], ['Book a visit', 'Opening hours']);
     }
     if (intent === 'careers') return bot('<p>' + (KB.jobs.length ? 'We are currently hiring for: ' + KB.jobs.map(function (j) { return '<b>' + esc(j.title) + '</b>'; }).join(', ') + '.' : 'We have no advertised openings right now, but you can send your CV and we’ll keep it on file.') + '</p>',
       [{ label: KB.jobs.length ? 'See openings and apply' : 'Send your CV', href: link('/careers/') }], ['Where are you?']);
@@ -227,7 +232,9 @@
     if (intent === 'gallery' && has(t, ['video'])) return bot('<p>Our doctors post short educational videos about treatments and dental care.</p>', [{ label: 'Educational videos', href: link('/videos/') }, { label: 'Patient feedback videos', href: link('/feedback/') }], ['Treatments']);
     if (intent === 'gallery') return bot('<p>' + (KB.hasGallery || KB.hasVideos ? 'Take a look inside the clinic.' : 'Photos of the clinic are coming soon. You are welcome to visit during opening hours.') + '</p>',
       [].concat(KB.hasGallery ? [{ label: 'Photo gallery', href: link('/gallery/') }] : [], KB.hasVideos ? [{ label: 'Videos', href: link('/gallery/videos/') }] : []), ['Where are you?', 'Book a visit']);
-    if (intent === 'human') return bot('<p>Of course. Our team replies on WhatsApp, and your question will be pre-filled. You can also call during opening hours.</p>', [askWa(), callAct]);
+    var viberAct = KB.viber ? [{ label: 'Message us on Viber', href: 'viber://chat?number=' + encodeURIComponent(KB.viber), cls: 'vb' }] : [];
+    if (intent === 'viber') return bot('<p>Yes, you can message us on Viber' + (KB.clinic.phone ? ' at <b>' + esc(KB.clinic.phone) + '</b>' : '') + '. If Viber doesn’t open, call us or use WhatsApp.</p>', viberAct.concat([callAct]));
+    if (intent === 'human') return bot('<p>Of course. Our team replies on WhatsApp or Viber, and on WhatsApp your question will be pre-filled. You can also call during opening hours.</p>', [askWa()].concat(viberAct, [callAct]));
     if (svc && !(intent === 'hours' || intent === 'location' || intent === 'dentist' || intent === 'tests')) return symptom && !QUESTION.test(t) ? symptomAnswer(q) : serviceAnswer(svc, q);
     if (intent === 'hours') {
       var hol = has(t, ['holiday', 'dashain', 'tihar', 'festival']);

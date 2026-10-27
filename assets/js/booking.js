@@ -128,6 +128,8 @@
 
   /* ================================================================== scheduler */
   var LAB = 'Lab test (blood or other)'; // must match LAB_TEST in app/server.js
+  var OTHER = 'Other (describe your problem)'; // must match OTHER in app/server.js
+  if (root.id === 'scheduler' && q.get('lab')) { location.replace(SITE + 'lab-tests/#book'); return; }
   var O, state = { kind: 'treatment', service: null, test: null, doctor: 'any', date: null, start: null, method: null };
   api('booking/options').then(function (o) { O = o; init(); }).catch(function () {
     /* No server: on a static preview, fall back to the labelled demo dataset; otherwise keep the WhatsApp/phone fallback. */
@@ -168,11 +170,12 @@
     var h = '<p class="grp">Treatments</p><div class="picks">' + ['General check-up'].concat(O.services.map(function (s) { return s.name; })).map(function (n) {
       return chip(n, state.kind === 'treatment' && state.service === n, 'data-what="t" data-name="' + esc(n) + '"');
     }).join('') + '</div>';
-    h += '<p class="grp">Lab &amp; tests</p><div class="picks">' + chip(LAB, state.kind === 'investigation' && !state.test, 'data-what="lab"') + O.tests.map(function (t) {
-      return chip(t.name, state.kind === 'investigation' && state.test && state.test.id === t.id, 'data-what="i" data-id="' + t.id + '"');
-    }).join('') + '</div>' + (state.test && state.test.preparation ? '<p class="note">' + esc('Preparation: ' + state.test.preparation) + '</p>' : '') +
-      (state.kind === 'investigation' && !state.test ? '<p class="note">Write the test your doctor asked for in “Anything we should know?” below. Some blood tests need fasting: we will tell you.</p>' : '');
+    h = h.replace(/<\/div>$/, chip(OTHER, state.kind === 'treatment' && state.service === OTHER, 'data-what="t" data-name="' + esc(OTHER) + '"') + '</div>');
+    if (state.service === OTHER) h += '<div class="field other-field"><label for="b-other">Describe your problem</label><input id="b-other" maxlength="160" placeholder="e.g. tooth pain on the lower left when I chew" value="' + esc(state.other || '') + '"></div>';
+    h += '<p class="note">Only need a blood test or a dental X-ray? You don’t need a dental appointment: <a href="' + esc(SITE) + 'lab-tests/#book">book a lab test</a> or <a href="' + esc(SITE) + 'dental-x-ray/#book">book an X-ray</a> directly.</p>';
     el.innerHTML = h;
+    var oth = el.querySelector('#b-other');
+    if (oth) oth.addEventListener('input', function () { state.other = oth.value; summary(); });
     el.querySelectorAll('[data-what]').forEach(function (b) {
       b.addEventListener('click', function () {
         if (b.getAttribute('data-what') === 't') { state.kind = 'treatment'; state.test = null; state.service = b.getAttribute('data-name'); }
@@ -251,12 +254,12 @@
     var f = d.getElementById('s-form'), name = f ? f.name.value.trim() : '';
     var doc = state.kind === 'investigation' ? 'Assigned at the clinic' : state.doctor === 'any' ? 'Any available doctor' : (O.doctors.filter(function (x) { return x.slug === state.doctor; })[0] || {}).name;
     d.getElementById('s-sum').innerHTML =
-      '<dt>For</dt><dd>' + esc(state.service || 'Choose a treatment') + '</dd>' +
+      '<dt>For</dt><dd>' + esc(state.service === OTHER ? (state.other ? 'Other: ' + state.other : 'Other (describe below)') : (state.service || 'Choose a treatment')) + '</dd>' +
       '<dt>Doctor</dt><dd>' + esc(doc || '') + '</dd>' +
       '<dt>When</dt><dd>' + (state.date && state.start ? esc(dayName(state.date, { weekday: 'short', day: 'numeric', month: 'short' })) + ', ' + hm(state.start) : '<span class="muted">Pick a time</span>') + '</dd>' +
       (name ? '<dt>Patient</dt><dd>' + esc(name) + '</dd>' : '') +
       (O.deposit > 0 ? '<dt>Deposit</dt><dd>' + npr(O.deposit) + (state.method ? ' · ' + esc(METHOD[state.method][0]) : '') + '</dd>' : '');
-    var ready = !!(state.service && state.date && state.start);
+    var ready = !!(state.service && state.date && state.start && (state.service !== OTHER || (state.other || '').trim()));
     var btn = d.getElementById('s-book'); btn.disabled = !ready;
     d.getElementById('s-hint').textContent = ready ? (O.deposit > 0 && (state.method === 'esewa' || state.method === 'khalti') ? 'You will be taken to ' + METHOD[state.method][0] + ' to pay ' + npr(O.deposit) + '. Your time is held for ' + O.holdMinutes + ' minutes.' : 'You will get a booking reference straight away.') : (!state.service ? 'Choose what you need to continue.' : 'Choose a time to continue.');
   }
@@ -266,7 +269,7 @@
     if (f.website.value) return;
     btn.disabled = true; btn.textContent = 'Booking…'; st.className = 'form-status';
     post('bookings', {
-      kind: state.kind, service: state.service, testId: state.test ? state.test.id : null,
+      kind: state.kind, service: state.service, other: state.other || '', testId: state.test ? state.test.id : null,
       doctor: state.kind === 'treatment' && state.doctor !== 'any' ? state.doctor : null,
       date: state.date, start: state.start, name: f.name.value, phone: f.phone.value, email: f.email.value, notes: f.notes.value,
       payMethod: O.deposit > 0 ? state.method : null,

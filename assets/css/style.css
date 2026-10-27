@@ -897,3 +897,45 @@ button[disabled]{opacity:.7; cursor:progress}
 .hx{margin-top:-102px; padding-top:calc(clamp(54px,7vw,96px) + 102px)}
 .hx h1{font-size:clamp(2.7rem,5.4vw,4.7rem)}
 .lab-band .kicker{color:var(--gold-2)}
+
+/* ============================================================ v5 (client feedback 2026-10-27) */
+/* Booking summary: pinned only on wide screens. On phones and tablets it stays in place so it never covers the form. */
+.sched-sum{position:static}
+@media (min-width:1101px){.sched-sum{position:sticky; top:110px}}
+@media (max-width:960px){.sched-sum{order:0; padding:18px 20px} .sched-sum h3{font-size:1.05rem; margin-bottom:8px} .sched-sum dl{gap:4px 12px; font-size:.9rem}}
+.steady .site-header{transform:none!important}
+.other-field{margin-top:14px; max-width:520px}
+
+/* Viber */
+.btn-viber{background:#7360F2; color:#fff; box-shadow:0 12px 26px -14px rgba(115,96,242,.8)}
+.btn-viber:hover{background:#5E4BD6; color:#fff}
+@media (max-width:760px){.actionbar{grid-template-columns:repeat(4,1fr)} .actionbar a.vb{background:#7360F2}}
+
+/* Real map */
+.map-live{min-height:0; display:flex; flex-direction:column; background:var(--surface)}
+.map-live iframe{position:static; width:100%; height:380px; border:0; display:block}
+.map-bar{display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; padding:14px 18px; border-top:1px solid var(--line); font-size:.92rem; color:var(--muted)}
+.map-bar span{display:inline-flex; align-items:center; gap:8px}
+.map-bar svg{width:18px; height:18px; color:var(--emerald)}
+.map-bar b{color:var(--ink)}
+.contact-side .map-live iframe{height:300px}
+
+/* Lab tests / X-ray */
+.lab-split{display:grid; gap:14px; position:relative; z-index:1}
+.lab-pick{display:grid; grid-template-columns:52px 1fr; grid-template-rows:auto auto auto; column-gap:14px; align-items:center; background:rgba(255,255,255,.06); border:1px solid rgba(233,211,143,.35); border-radius:var(--r); padding:16px 18px; text-decoration:none; color:#C3D6CB; transition:background .3s, transform .3s var(--ease)}
+.lab-pick:hover{background:rgba(255,255,255,.1); transform:translateX(4px); color:#C3D6CB}
+.lab-pick .qi{grid-row:1/4}
+.lab-pick b{color:#FBF7EC; font-family:var(--f-display); font-size:1.5rem; line-height:1.1}
+.lab-pick small{font-size:.88rem}
+.lab-pick .go{color:var(--gold-2); font-weight:700; font-size:.9rem; margin-top:4px}
+.test-split{display:grid; grid-template-columns:minmax(0,1fr) 420px; gap:clamp(24px,4vw,48px); align-items:start}
+@media (max-width:1000px){.test-split{grid-template-columns:1fr}}
+.book-panel{border:1.5px solid #E6D9B5; box-shadow:var(--shadow-lg)}
+.book-panel .form-grid{grid-template-columns:1fr 1fr}
+.book-panel .form-foot{flex-direction:column; align-items:stretch}
+.book-panel .form-foot .btn{width:100%}
+.lab-name{display:flex; align-items:center; gap:10px; background:var(--sky); border-radius:var(--r-sm); padding:12px 16px; margin-bottom:6px}
+.lab-name svg{width:20px; height:20px; color:var(--emerald); flex:none}
+.lab-card h3{margin-top:0}
+.field select{font:inherit; font-size:1rem; color:var(--ink); background:var(--bg); border:1.5px solid var(--line); border-radius:14px; padding:14px 16px; min-height:54px; width:100%}
+.act.vb{background:#7360F2; color:#fff} .act.vb:hover{background:#5E4BD6}
