@@ -939,3 +939,4 @@ button[disabled]{opacity:.7; cursor:progress}
 .lab-card h3{margin-top:0}
 .field select{font:inherit; font-size:1rem; color:var(--ink); background:var(--bg); border:1.5px solid var(--line); border-radius:14px; padding:14px 16px; min-height:54px; width:100%}
 .act.vb{background:#7360F2; color:#fff} .act.vb:hover{background:#5E4BD6}
+.map-acts{display:flex;gap:8px;flex-wrap:wrap}
